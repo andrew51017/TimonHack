@@ -1,6 +1,6 @@
 {
   "name": "TimonHack",
-  "app_id": "",
+  "app_id": "bc5253eb",
   "type": "ionic-angular",
   "integrations": {
     "cordova": {}
