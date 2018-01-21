@@ -88,6 +88,6 @@
     <plugin name="cordova-plugin-geolocation" spec="^4.0.1">
         <variable name="GEOLOCATION_USAGE_DESCRIPTION" value="To show car parks in your local area" />
     </plugin>
-    <engine name="android" spec="7.0.0" />
     <plugin name="com.unarin.cordova.beacon" spec="~3.6.0" />
+    <engine name="android" spec="7.0.0" />
 </widget>

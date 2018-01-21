@@ -12,21 +12,31 @@ import { GoogleMaps } from "@ionic-native/google-maps";
 import { Geolocation } from '@ionic-native/geolocation';
 import {IBeacon} from "@ionic-native/ibeacon";
 
+import { APP_CONFIG, ApplicationSettings } from '../configuration/applicationsettings';
+import {LoginRegisterPage} from "../pages/login-register/login-register";
+import {HttpModule} from "@angular/http";
+import {BeaconPopupPage} from "../pages/beacon-popup/beacon-popup";
+
 @NgModule({
   declarations: [
     MyApp,
     HomePage,
-    ListPage
+    ListPage,
+    BeaconPopupPage,
+    LoginRegisterPage
   ],
   imports: [
     BrowserModule,
+    HttpModule,
     IonicModule.forRoot(MyApp),
   ],
   bootstrap: [IonicApp],
   entryComponents: [
     MyApp,
     HomePage,
-    ListPage
+    BeaconPopupPage,
+    ListPage,
+    LoginRegisterPage
   ],
   providers: [
     StatusBar,
@@ -34,7 +44,8 @@ import {IBeacon} from "@ionic-native/ibeacon";
     {provide: ErrorHandler, useClass: IonicErrorHandler},
     GoogleMaps,
     Geolocation,
-    IBeacon
+    IBeacon,
+    {provide: APP_CONFIG, useValue: ApplicationSettings }
   ]
 })
 export class AppModule {}

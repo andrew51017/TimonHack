@@ -4,8 +4,10 @@ export let APP_CONFIG = new InjectionToken("applicationSettings");
 
 export interface IApplicationSettings {
   API_ENDPOINT: string;
+  CURRENT_TOKEN: string
 }
 
 export const ApplicationSettings: IApplicationSettings = {
-  API_ENDPOINT: "http://192.168.0.2:8080/api/",
+  API_ENDPOINT: "http://timon-hack.herokuapp.com/api",
+  CURRENT_TOKEN: ""
 };

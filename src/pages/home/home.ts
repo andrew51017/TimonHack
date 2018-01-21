@@ -1,11 +1,15 @@
-import { Component, ViewChild  } from '@angular/core';
-import { Platform, NavController } from 'ionic-angular';
+import {Component, Inject, ViewChild} from '@angular/core';
+import {Platform, NavController, ModalController} from 'ionic-angular';
 import {
   GoogleMap, GoogleMapOptions, GoogleMaps, GoogleMapsEvent, LatLng, Marker,
   MarkerOptions
 } from "@ionic-native/google-maps";
 import { Geolocation } from '@ionic-native/geolocation';
 import {IBeacon, IBeaconDelegate, Region} from "@ionic-native/ibeacon";
+import {LoginRegisterPage} from "../login-register/login-register";
+import {Http} from "@angular/http";
+import {APP_CONFIG, IApplicationSettings} from "../../configuration/applicationsettings";
+import {BeaconPopupPage} from "../beacon-popup/beacon-popup";
 
 @Component({
   selector: 'page-home',
@@ -19,17 +23,21 @@ export class HomePage {
 
   region: Region;
 
-  constructor(public navCtrl: NavController, public googleMaps: GoogleMaps, public geolocation: Geolocation, public iBeacon: IBeacon) {
+  hasShown: boolean
+
+  constructor(public modalCtrl: ModalController, public http: Http, @Inject(APP_CONFIG) public config: IApplicationSettings, public navCtrl: NavController, public googleMaps: GoogleMaps, public geolocation: Geolocation, public iBeacon: IBeacon) {
 
   }
 
   ionViewDidLoad() {
+
     this.loadMap();
-    this.monitorBeacons();
 
   }
 
   loadMap() {
+
+    (this.http as any)._defaultOptions.headers.append('Authorization', 'Bearer ' + this.config.CURRENT_TOKEN);
 
     let locationOptions = {timeout: 10000, enableHighAccuracy: false};
 
@@ -47,16 +55,46 @@ export class HomePage {
 
         this.map.animateCamera(position);
 
-        let markerOptions: MarkerOptions = {
-          position: coordinates,
-          icon: "assets/images/icons8-Marker-64.png",
-          title: 'Our first POI'
-        };
+        this.http.get(this.config.API_ENDPOINT + "/carparks").map(res => res.json())
+        .subscribe(data => {
 
-        const marker = this.map.addMarker(markerOptions)
-          .then((marker: Marker) => {
-            marker.showInfoWindow();
-          });
+          for (var i = 0; i < data.length; i++) {
+
+            var carPark = data[i];
+
+            let carParkCoordinates: LatLng = new LatLng(carPark.geo_lat, carPark.geo_lng);
+
+            let markerIcon = "assets/imgs/";
+
+            if (carPark.has_beacon) {
+
+              if (carPark.available_spaces > 0) {
+                markerIcon += "M1.png";
+              }
+              else {
+                markerIcon += "M5.png";
+              }
+            }
+            else {
+              markerIcon += "M9.png"
+            }
+
+            let markerOptions: MarkerOptions = {
+              position: carParkCoordinates,
+              icon: markerIcon,
+              title: carPark.name + " (Total spaces: " + carPark.total_spaces + " )"
+            };
+
+            const marker = this.map.addMarker(markerOptions)
+              .then((marker: Marker) => {
+                marker.showInfoWindow();
+              });
+
+          }
+
+        });
+
+        this.monitorBeacons();
 
       });
 
@@ -77,7 +115,27 @@ export class HomePage {
     // Subscribe to some of the delegate’s event handlers
     this.delegate.didRangeBeaconsInRegion().subscribe(data => {
 
-      console.log(data);
+      if (data.beacons.length == 1 && !this.hasShown)
+      {
+        this.hasShown = true;
+
+        console.log("Found beacon");
+        console.log(data);
+
+        var beacon = data.beacons[0];
+        var major = beacon.major;
+        var minor = beacon.minor;
+
+        this.http.get(this.config.API_ENDPOINT + "/beacon?beacon_major=" + major + "&beacon_minor=" + minor)
+          .map(res => res.json())
+          .subscribe(data => {
+
+            let modal = this.modalCtrl.create(BeaconPopupPage, {carPark: data});
+            modal.present();
+
+          });
+
+      }
 
     });
 
