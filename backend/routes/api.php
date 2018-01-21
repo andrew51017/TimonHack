@@ -13,6 +13,13 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+Route::group(['namespace' => 'Api'], function () {
+    Route::post('token', 'TokenController@authenticate');
+});
+
+// Authenticated API actions.
+
+Route::group(['namespace' => 'Api', 'middleware' => ['jwt.auth']], function () {
+    Route::get('carparks', 'CarparkController@getAll');
+    Route::get('carparks/{carPark}', 'CarparkController@getSingle');
 });

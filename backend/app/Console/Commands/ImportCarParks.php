@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\CarPark;
+use App\Utilities\GeoCodingService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
@@ -22,14 +23,18 @@ class ImportCarParks extends Command
      */
     protected $description = 'Imports car park data from a JSON source';
 
+    protected $geoCodingService;
+
     /**
      * Create a new command instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(GeoCodingService $codingService)
     {
         parent::__construct();
+
+        $this->geoCodingService = $codingService;
     }
 
     /**
@@ -59,6 +64,11 @@ class ImportCarParks extends Command
 
             // Need to handle the single oddly named field.
             $storedCarPark->non_charging_days = $carPark["non-charging_days"];
+
+            $latLng = $this->geoCodingService->getLatAndLngForCarPark($storedCarPark);
+
+            $storedCarPark->geo_lat = $latLng->lat;
+            $storedCarPark->geo_lng = $latLng->lng;
 
             var_dump($storedCarPark);
 

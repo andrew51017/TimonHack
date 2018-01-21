@@ -18,6 +18,8 @@ class CreateCarParksTable extends Migration
             $table->timestamps();
             $table->longText("name");
             $table->longText("postcode");
+            $table->double("geo_lat")->nullable();
+            $table->double("geo_lng")->nullable();
             $table->boolean("charged")->nullable();
             $table->longText("tarrif")->nullable();
             $table->longText("charged_hours")->nullable();
