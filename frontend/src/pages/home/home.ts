@@ -1,6 +1,10 @@
-import { Component } from '@angular/core';
-import { NavController } from 'ionic-angular';
-import { GoogleMap, GoogleMapOptions, GoogleMaps, GoogleMapsEvent } from "@ionic-native/google-maps";
+import { Component, ViewChild  } from '@angular/core';
+import { Platform, NavController } from 'ionic-angular';
+import {
+  GoogleMap, GoogleMapOptions, GoogleMaps, GoogleMapsEvent, LatLng, Marker,
+  MarkerOptions
+} from "@ionic-native/google-maps";
+import { Geolocation } from '@ionic-native/geolocation';
 
 @Component({
   selector: 'page-home',
@@ -9,7 +13,7 @@ import { GoogleMap, GoogleMapOptions, GoogleMaps, GoogleMapsEvent } from "@ionic
 export class HomePage {
   map: GoogleMap;
 
-  constructor(public navCtrl: NavController, private googleMaps: GoogleMaps) {
+  constructor(public navCtrl: NavController, public googleMaps: GoogleMaps, public geolocation: Geolocation) {
 
   }
 
@@ -19,42 +23,40 @@ export class HomePage {
 
   loadMap() {
 
-    let mapOptions: GoogleMapOptions = {
-      camera: {
-        target: {
-          lat: 54.582943,
-          lng: -5.933810,
-        },
-        zoom: 18,
-        tilt: 30
-      }
-    };
+    let locationOptions = {timeout: 10000, enableHighAccuracy: false};
 
-    this.map = this.googleMaps.create('map-canvas', mapOptions);
+    this.geolocation.getCurrentPosition(locationOptions).then((resp) => {
 
-    // Wait the MAP_READY before using any methods.
-    this.map.one(GoogleMapsEvent.MAP_READY)
-      .then(() => {
-        console.log('Map is ready!');
+      this.map = this.googleMaps.create('map_canvas');
+      this.map.one(GoogleMapsEvent.MAP_READY).then((data: any) => {
 
-        // Now you can use all methods safely.
-        this.map.addMarker({
-          title: 'Ionic',
-          icon: 'blue',
-          animation: 'DROP',
-          position: {
-            lat: 43.0741904,
-            lng: -89.3809802
-          }
-        })
-          .then(marker => {
-            marker.on(GoogleMapsEvent.MARKER_CLICK)
-              .subscribe(() => {
-                alert('clicked');
-              });
+        let coordinates: LatLng = new LatLng(resp.coords.latitude, resp.coords.longitude);
+
+        let position = {
+          target: coordinates,
+          zoom: 17
+        };
+
+        this.map.animateCamera(position);
+
+        let markerOptions: MarkerOptions = {
+          position: coordinates,
+          icon: "assets/images/icons8-Marker-64.png",
+          title: 'Our first POI'
+        };
+
+        const marker = this.map.addMarker(markerOptions)
+          .then((marker: Marker) => {
+            marker.showInfoWindow();
           });
 
       });
+
+    }).catch((error) => {
+      console.log('Error getting location', error);
+    });
+
   }
+
 
 }
